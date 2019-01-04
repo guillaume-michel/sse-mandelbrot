@@ -83,3 +83,80 @@
   (:generator 4
     (inst movmskps bits x)
     (inst test bits bits)))
+
+;; AVX2
+#+avx2
+(progn
+  (define-vop (mandelbrot::f8+)
+    (:translate mandelbrot::f8+)
+    (:policy :fast-safe)
+    (:args (x :scs (single-avx2-reg) :target r)
+           (y :scs (single-avx2-reg)))
+    (:arg-types simd-pack-256-single simd-pack-256-single)
+    (:results (r :scs (single-avx2-reg)))
+    (:result-types simd-pack-256-single)
+    (:generator 4
+                (inst vaddps r x y)))
+
+  (define-vop (mandelbrot::f8*)
+    (:translate mandelbrot::f8*)
+    (:policy :fast-safe)
+    (:args (x :scs (single-avx2-reg) :target r)
+           (y :scs (single-avx2-reg)))
+    (:arg-types simd-pack-256-single simd-pack-256-single)
+    (:results (r :scs (single-avx2-reg)))
+    (:result-types simd-pack-256-single)
+    (:generator 4
+                (inst vmulps r x y)))
+
+  (define-vop (mandelbrot::f8-)
+    (:translate mandelbrot::f8-)
+    (:policy :fast-safe)
+    (:args (x :scs (single-avx2-reg) :target r) (y :scs (single-avx2-reg)))
+    (:arg-types simd-pack-256-single simd-pack-256-single)
+    (:results (r :scs (single-avx2-reg) :from (:argument 0)))
+    (:result-types simd-pack-256-single)
+    (:generator 4
+                (inst vsubps r x y)))
+
+;; (define-vop (mandelbrot::f8<=)
+;;   (:translate mandelbrot::f8<=)
+;;   (:policy :fast-safe)
+;;   (:args (x :scs (single-avx2-reg) :target r) (y :scs (single-avx2-reg)))
+;;   (:arg-types simd-pack-256-single simd-pack-256-single)
+;;   (:results (r :scs (int-avx2-reg) :from (:argument 0)))
+;;   (:result-types simd-pack-256-int)
+;;   (:generator 4
+;;     (inst vcmpps :le r x y)))
+
+  (define-vop (mandelbrot::i8-)
+    (:translate mandelbrot::i8-)
+    (:policy :fast-safe)
+    (:args (x :scs (int-avx2-reg) :target r) (y :scs (int-avx2-reg)))
+    (:arg-types simd-pack-256-int simd-pack-256-int)
+    (:results (r :scs (int-avx2-reg) :from (:argument 0)))
+    (:result-types simd-pack-256-int)
+    (:generator 4
+                (inst vpsubd r x y)))
+
+  (define-vop (mandelbrot::f8-sign-mask)
+    (:translate mandelbrot::f8-sign-mask)
+    (:policy :fast-safe)
+    (:args (x :scs (int-avx2-reg single-avx2-reg double-avx2-reg)))
+    (:arg-types simd-pack-256)
+    (:results (r :scs (unsigned-reg)))
+    (:result-types unsigned-num)
+    (:generator 4
+                (inst vmovmskps r x)))
+
+  (define-vop (mandelbrot::f8-sign-all-zero)
+    (:translate mandelbrot::f8-sign-all-zero)
+    (:policy :fast-safe)
+    (:args (x :scs (int-avx2-reg single-avx2-reg double-avx2-reg)))
+    (:arg-types simd-pack-256)
+    (:temporary (:sc unsigned-reg) bits)
+    (:conditional :z)
+    (:generator 4
+                (inst vmovmskps bits x)
+                (inst test bits bits)))
+)

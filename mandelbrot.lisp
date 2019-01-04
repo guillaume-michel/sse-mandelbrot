@@ -11,9 +11,28 @@
     (values (f4+ r cr)
             (f4+ i ci))))
 
+#+avx2
+(defun %mandelbrot-iter-avx2 (zr zi cr ci)
+  (declare (optimize speed)
+           (type f8 zr zi cr ci))
+  (let* ((r (f8- (f8* zr zr)
+                 (f8* zi zi)))
+         (i/2 (f8* zr zi))
+         (i   (f8+ i/2 i/2)))
+    (values (f8+ r cr)
+            (f8+ i ci))))
+
+
 (defun %norm^2 (r i)
-  (declare (optimize speed))
+  (declare (optimize speed)
+           (type f4 r i))
    (f4+ (f4* r r) (f4* i i)))
+
+#+avx2
+(defun %norm^2-avx (r i)
+  (declare (optimize speed)
+           (type f8 r i))
+   (f8+ (f8* r r) (f8* i i)))
 
 (declaim (maybe-inline mandelbrot-escape))
 (defun mandelbrot-escape (cr ci n)
